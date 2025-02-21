@@ -48,7 +48,7 @@ namespace ProductManagement.API
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi("/openapi/v1/openapi.json");
-                app.MapScalarApiReference();
+                
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/openapi/v1/openapi.json", "v1");
@@ -57,7 +57,8 @@ namespace ProductManagement.API
                     options.DisplayRequestDuration(); // Display request duration
                 });
 
-                
+                app.MapScalarApiReference();
+
                 //await using var serviceScope = app.Services.CreateAsyncScope();
                 //await using var dbContext = serviceScope.ServiceProvider.GetRequiredService<ProductContext>();
                 //await dbContext.Database.EnsureCreatedAsync();

@@ -4,6 +4,7 @@ using ProductManagement.Core.Entities;
 using ProductManagement.Infra.Contexts;
 using ProductManagement.Infra.Repositories;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ProductManagement.Test
 {
@@ -11,9 +12,11 @@ namespace ProductManagement.Test
     {
         private readonly ProductContext _context;
         private readonly ProductRepository _productRepository;
-
-        public ProductRepositoryTests()
+        private readonly ITestOutputHelper output;
+        public ProductRepositoryTests(ITestOutputHelper output)
         {
+            this.output = output;
+
             var options = new DbContextOptionsBuilder<ProductContext>()
                  .UseInMemoryDatabase(databaseName: "TestDatabase")
                  .Options;

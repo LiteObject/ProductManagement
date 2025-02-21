@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Moq;
 using ProductManagement.App.DTOs;
 using ProductManagement.App.Profiles;
@@ -16,11 +17,11 @@ namespace ProductManagement.Test
         private readonly IMapper _mapper;
         // CA1859 suggests changing the type to the concrete class ProductService for improved performance.
         private readonly ProductService _productService;
-        private readonly ITestOutputHelper output;
+        private readonly ITestOutputHelper _output;
 
         public ProductServiceTests(ITestOutputHelper output)
         {
-            this.output = output;
+            this._output = output;
 
             _mockProductRepository = new Mock<IProductRepository>();
 
@@ -67,7 +68,7 @@ namespace ProductManagement.Test
 
             // Act
             ProductDto? productDto = _productService.GetProductById(product?.Id ?? 0);
-            output.WriteLine("The product {0}", productDto);
+            _output.WriteLine("The product {0}", productDto);
 
             // Assert
             Assert.NotNull(productDto);
@@ -76,6 +77,65 @@ namespace ProductManagement.Test
             Assert.Equal(product?.Name, productDto.Name);
             Assert.Equal(product?.Price, productDto.Price);
             Assert.Equal(product?.Description, productDto.Description);
+        }
+
+        [Fact]
+        public void Test_AddProduct()
+        {
+            // Arrange
+            var createProductDto = new CreateProductDto
+            {
+                Name = "New Product",
+                Price = 30,
+                Description = "New Product Description"
+            };
+
+            var newProduct = Product.Create(createProductDto.Name, createProductDto.Price, createProductDto.Description);
+            var newProductId = 3; // Simulate the new product ID
+
+            _mockProductRepository.Setup(repo => repo.Add(It.IsAny<Product>()))
+                .Callback<Product>(p => p.GetType().GetProperty("Id", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(p, newProductId)); // Simulate setting the ID
+
+            // Act
+            int addedProductId = _productService.AddProduct(createProductDto);
+            _output.WriteLine("The new product ID is {0}", addedProductId);
+
+            // Assert
+            _mockProductRepository.Verify(repo => repo.Add(It.IsAny<Product>()), Times.Once);
+            Assert.True(newProductId > 0);
+        }
+
+        [Fact]
+        public void Test_UpdateProduct()
+        {
+            // Arrange
+            var updateProductDto = new UpdateProductDto
+            {
+                Id = 1,
+                Name = "Updated Product",
+                Price = 40,
+                Description = "Updated Product Description"
+            };
+
+            // Act
+            _productService.UpdateProduct(updateProductDto);
+
+            // Assert
+            _mockProductRepository.Verify(repo => repo.Update(It.IsAny<Product>()), Times.Once);
+        }
+
+        [Fact]
+        public void Test_DeleteProduct()
+        {
+            // Arrange
+            var product = _productService.GetAllProducts().FirstOrDefault();
+
+            // Act
+            _productService.DeleteProduct(product?.Id ?? 0);
+
+            // Assert
+            _mockProductRepository.Verify(repo => repo.Delete(It.IsAny<Product>()), Times.Once);
         }
     }
 }
