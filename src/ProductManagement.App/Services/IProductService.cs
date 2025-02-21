@@ -10,8 +10,8 @@ namespace ProductManagement.App.Services
     {
         IEnumerable<ProductDto> GetAllProducts();
         ProductDto? GetProductById(int id);
-        int AddProduct(ProductDto productDto);
-        void UpdateProduct(ProductDto productDto);
+        int AddProduct(CreateProductDto productDto);
+        void UpdateProduct(UpdateProductDto productDto);
         void DeleteProduct(int id);
     }
 }

@@ -75,10 +75,28 @@ namespace ProductManagement.API.Controllers
         /// <param name="productDto">The product DTO.</param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post(ProductDto productDto)
+        public IActionResult Post(CreateProductDto productDto)
         {
             int newProductId = _productService.AddProduct(productDto);
             return CreatedAtRoute("GetProductById", new { id = newProductId }, productDto);
+        }
+
+        /// <summary>
+        /// Update a product.
+        /// </summary>
+        /// <param name="id">The product id.</param>
+        /// <param name="productDto"></param>
+        /// <returns></returns>
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, UpdateProductDto productDto)
+        {
+            if (id != productDto?.Id)
+            {
+                return BadRequest();
+            }
+
+            _productService.UpdateProduct(productDto);
+            return NoContent();
         }
     }
 }

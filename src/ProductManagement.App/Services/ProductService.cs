@@ -39,7 +39,7 @@ namespace ProductManagement.App.Services
             return product == null ? null : _mapper.Map<ProductDto>(product);
         }
 
-        public int AddProduct(ProductDto productDto)
+        public int AddProduct(CreateProductDto productDto)
         {
             _logger.LogInformation($"{nameof(AddProduct)} invoked");
             var product = _mapper.Map<Product>(productDto);
@@ -47,7 +47,7 @@ namespace ProductManagement.App.Services
             return product.Id;
         }
 
-        public void UpdateProduct(ProductDto productDto)
+        public void UpdateProduct(UpdateProductDto productDto)
         {
             _logger.LogInformation($"{nameof(UpdateProduct)} invoked");
             var product = _mapper.Map<Product>(productDto);
