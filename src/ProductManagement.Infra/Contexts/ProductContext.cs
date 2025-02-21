@@ -13,8 +13,40 @@ namespace ProductManagement.Infra.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            // modelBuilder.HasDefaultSchema(modelBuilder.Model.GetDefaultSchema());
+
             // Configure entity properties and relationships here
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductContext).Assembly);
+            base.OnModelCreating(modelBuilder);
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseAsyncSeeding(async (context, _, cancellationToken) =>
+            {
+                var product = await context.Set<Product>().FirstOrDefaultAsync(cancellationToken);
+
+                // Seed the database with a default product if none exists
+                if (product == null)
+                {
+                    context.Set<Product>().Add(Product.Create("Test Product Name", 0.99m, "Test product description"));
+                    await context.SaveChangesAsync(cancellationToken);
+                }
+
+            })
+            .UseSeeding((context, _) =>
+            {
+                var product = context.Set<Product>().FirstOrDefault();
+                // Seed the database with a default product if none exists
+                if (product == null)
+                {
+                    context.Set<Product>().Add(Product.Create("Test Product Name", 0.99m, "Test product description"));
+                    context.SaveChanges();
+                }
+            });
+
+            // Configure the database connection here
+            base.OnConfiguring(optionsBuilder);
         }
     }
 }

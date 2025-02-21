@@ -1,24 +1,43 @@
-version: '3'
-
+version: '3.9'
 services:
-  api:
-    build: ./src/ProductManagement.API
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=db;Database=productmanagement;Username=postgres;Password=postgres
-
+  # api:
+  #   build:
+  #     context: ./src
+  #     dockerfile: ProductManagement.API/Dockerfile
+  #   ports:
+  #     - "8080:8081" # HTTP
+  #     - "8443:443"  # HTTPS
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=http://+:8081;https://+:443
+  #     - ConnectionStrings__DefaultConnection=Host=db;Database=ProductManagementDb;Username=yourusername;Password=yourpassword
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8081"] # Updated to match port
+  #     timeout: 5s
+  #     retries: 3
+  #   restart: always # Added restart policy
   db:
-    image: postgres:13
+    container_name: postgres
+    image: postgres:latest
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yourusername -d ProductManagementDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=productmanagement
-    volumes:
-      - db-data:/var/lib/postgresql/data
-
+      - POSTGRES_USER=yourusername
+      - POSTGRES_PASSWORD=yourpassword
+      - POSTGRES_DB=ProductManagementDb
+    ports:
+      - "5432:5432"
+    # volumes:
+    #   - db-data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8082:8080" # Updated to avoid port conflicts
 volumes:
   db-data:

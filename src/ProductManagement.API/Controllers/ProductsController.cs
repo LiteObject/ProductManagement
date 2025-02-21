@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using ProductManagement.App.DTOs;
 using ProductManagement.App.Services;
 
 namespace ProductManagement.API.Controllers
@@ -15,6 +16,14 @@ namespace ProductManagement.API.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<ProductsController> _logger;
 
+        private static readonly Action<ILogger, string, Exception?> _logInstantiated =
+           LoggerMessage.Define<string>(LogLevel.Information, new EventId(1, nameof(ProductsController)), "Instantiated {ControllerName}");
+        private static readonly Action<ILogger, string, Exception?> _logInvoked =
+            LoggerMessage.Define<string>(LogLevel.Information, new EventId(2, nameof(Get)), "Invoked {MethodName}");
+        private static readonly Action<ILogger, string, int, Exception?> _logInvokedWithId =
+            LoggerMessage.Define<string, int>(LogLevel.Information, new EventId(3, nameof(GetProductById)), "Invoked {MethodName} with ID: {Id}");
+
+
         /// <summary>
         /// Constructor for ProductsController.
         /// </summary>
@@ -26,7 +35,7 @@ namespace ProductManagement.API.Controllers
             _productService = productService;
             _mapper = mapper;
             _logger = logger;
-            _logger.LogInformation("Instantiated {ControllerName}", nameof(ProductsController));
+            _logInstantiated(_logger, nameof(ProductsController), null);
         }
 
         /// <summary>
@@ -36,7 +45,7 @@ namespace ProductManagement.API.Controllers
         [HttpGet(Name = "GetProducts")]
         public IActionResult Get()
         {
-            _logger.LogInformation("Invoked {MethodName}", nameof(Get));
+            _logInvoked(_logger, nameof(Get), null);
             var products = _productService.GetAllProducts();
             return Ok(products);
         }
@@ -49,7 +58,7 @@ namespace ProductManagement.API.Controllers
         [HttpGet("{id}", Name = "GetProductById")]
         public IActionResult GetProductById(int id)
         {
-            _logger.LogInformation("Invoked {MethodName} with ID: {Id}", nameof(GetProductById), id);
+            _logInvokedWithId(_logger, nameof(GetProductById), id, null);
             var product = _productService.GetProductById(id);
 
             if (product == null)
@@ -58,6 +67,18 @@ namespace ProductManagement.API.Controllers
             }
 
             return Ok(product);
+        }
+
+        /// <summary>
+        /// Add a new product.
+        /// </summary>
+        /// <param name="productDto">The product DTO.</param>
+        /// <returns></returns>
+        [HttpPost]
+        public IActionResult Post(ProductDto productDto)
+        {
+            int newProductId = _productService.AddProduct(productDto);
+            return CreatedAtRoute("GetProductById", new { id = newProductId }, productDto);
         }
     }
 }

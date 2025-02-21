@@ -5,6 +5,8 @@ using ProductManagement.App.Services;
 using ProductManagement.Core.Interfaces;
 using ProductManagement.Infra.Contexts;
 using ProductManagement.Infra.Repositories;
+using Scalar.AspNetCore;
+using System.Threading.Tasks;
 
 namespace ProductManagement.API
 {
@@ -46,6 +48,7 @@ namespace ProductManagement.API
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi("/openapi/v1/openapi.json");
+                app.MapScalarApiReference();
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/openapi/v1/openapi.json", "v1");
@@ -53,6 +56,11 @@ namespace ProductManagement.API
                     options.DocumentTitle = "Product Management API Documentation"; // Set the document title
                     options.DisplayRequestDuration(); // Display request duration
                 });
+
+                
+                //await using var serviceScope = app.Services.CreateAsyncScope();
+                //await using var dbContext = serviceScope.ServiceProvider.GetRequiredService<ProductContext>();
+                //await dbContext.Database.EnsureCreatedAsync();
             }
 
             app.UseHttpsRedirection();

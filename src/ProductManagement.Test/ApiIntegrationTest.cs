@@ -4,16 +4,11 @@ using Xunit;
 
 namespace ProductManagement.Test
 {
-    public class ApiIntegrationTest : IClassFixture<WebApplicationFactory<Program>>
+    public class ApiIntegrationTest(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly WebApplicationFactory<Program> _factory = factory;
 
-        public ApiIntegrationTest(WebApplicationFactory<Program> factory)
-        {
-            _factory = factory;
-        }
-
-        [Fact(Skip = "Needs to configure database")]
+        [Fact]
         public async Task Get_Products_ReturnsSuccessStatusCode()
         {
             // Arrange

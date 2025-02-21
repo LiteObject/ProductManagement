@@ -7,13 +7,12 @@ dotnet tool install --global dotnet-ef
 
 ### Add migration files
 ```bash
-dotnet add package Microsoft.EntityFrameworkCore.Design -p ProductManagement.API
+dotnet ef migrations add InitialCreate -p src/ProductManagement.Infra -s src/ProductManagement.API 
 ```
 
 ### Apply migration
 ```bash
-dotnet ef database update -p ProductManagement.Infra -s ProductManagement.API
-
+dotnet ef database update -p src/ProductManagement.Infra -s src/ProductManagement.API
 ```
 
 #### Explanation:
