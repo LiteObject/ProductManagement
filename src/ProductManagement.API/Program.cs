@@ -6,7 +6,6 @@ using ProductManagement.Core.Interfaces;
 using ProductManagement.Infra.Contexts;
 using ProductManagement.Infra.Repositories;
 using Scalar.AspNetCore;
-using System.Threading.Tasks;
 
 namespace ProductManagement.API
 {

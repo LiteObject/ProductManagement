@@ -44,15 +44,15 @@ namespace ProductManagement.Test
                 Product.Create("Product 2", 20, "Description 2")
             };
 
-            _mockProductRepository.Setup(repo => repo.GetAll()).Returns(products);
-            _mockProductRepository.Setup(repo => repo.GetById(It.IsAny<int>())).Returns((int id) => products.FirstOrDefault(p => p.Id == id));
+            _mockProductRepository.Setup(repo => repo.GetAllAsync()).ReturnsAsync(products);
+            _mockProductRepository.Setup(repo => repo.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((int id) => products.FirstOrDefault(p => p.Id == id));
         }
 
         [Fact]
-        public void Test_GetAllProduct()
+        public async Task Test_GetAllProduct()
         {
             // Act
-            IEnumerable<ProductDto> products = _productService.GetAllProducts();
+            IEnumerable<ProductDto> products = await _productService.GetAllProductsAsync();
 
             // Assert
             Assert.NotNull(products);
@@ -61,13 +61,13 @@ namespace ProductManagement.Test
         }
 
         [Fact]
-        public void Test_GetProductById()
+        public async Task Test_GetProductById()
         {
             // Arrange
-            var product = _productService.GetAllProducts().FirstOrDefault();
+            var product = (await _productService.GetAllProductsAsync()).FirstOrDefault();
 
             // Act
-            ProductDto? productDto = _productService.GetProductById(product?.Id ?? 0);
+            ProductDto? productDto = await _productService.GetProductByIdAsync(product?.Id ?? 0);
             _output.WriteLine("The product {0}", productDto);
 
             // Assert
@@ -80,7 +80,7 @@ namespace ProductManagement.Test
         }
 
         [Fact]
-        public void Test_AddProduct()
+        public async Task Test_AddProduct()
         {
             // Arrange
             var createProductDto = new CreateProductDto
@@ -93,21 +93,22 @@ namespace ProductManagement.Test
             var newProduct = Product.Create(createProductDto.Name, createProductDto.Price, createProductDto.Description);
             var newProductId = 3; // Simulate the new product ID
 
-            _mockProductRepository.Setup(repo => repo.Add(It.IsAny<Product>()))
+            _mockProductRepository.Setup(repo => repo.AddAsync(It.IsAny<Product>()))
                 .Callback<Product>(p => p.GetType().GetProperty("Id", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(p, newProductId)); // Simulate setting the ID
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                    .SetValue(p, newProductId)); // Simulate setting the ID
 
             // Act
-            int addedProductId = _productService.AddProduct(createProductDto);
+            int addedProductId = await _productService.AddProductAsync(createProductDto);
             _output.WriteLine("The new product ID is {0}", addedProductId);
 
             // Assert
-            _mockProductRepository.Verify(repo => repo.Add(It.IsAny<Product>()), Times.Once);
+            _mockProductRepository.Verify(repo => repo.AddAsync(It.IsAny<Product>()), Times.Once);
             Assert.True(newProductId > 0);
         }
 
         [Fact]
-        public void Test_UpdateProduct()
+        public async Task Test_UpdateProduct()
         {
             // Arrange
             var updateProductDto = new UpdateProductDto
@@ -119,23 +120,23 @@ namespace ProductManagement.Test
             };
 
             // Act
-            _productService.UpdateProduct(updateProductDto);
+            await _productService.UpdateProductAsync(updateProductDto);
 
             // Assert
-            _mockProductRepository.Verify(repo => repo.Update(It.IsAny<Product>()), Times.Once);
+            _mockProductRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Product>()), Times.Once);
         }
 
         [Fact]
-        public void Test_DeleteProduct()
+        public async Task Test_DeleteProduct()
         {
             // Arrange
-            var product = _productService.GetAllProducts().FirstOrDefault();
+            var product = (await _productService.GetAllProductsAsync()).FirstOrDefault();
 
             // Act
-            _productService.DeleteProduct(product?.Id ?? 0);
+            await _productService.DeleteProductAsync(product?.Id ?? 0);
 
             // Assert
-            _mockProductRepository.Verify(repo => repo.Delete(It.IsAny<Product>()), Times.Once);
+            _mockProductRepository.Verify(repo => repo.DeleteAsync(It.IsAny<Product>()), Times.Once);
         }
     }
 }

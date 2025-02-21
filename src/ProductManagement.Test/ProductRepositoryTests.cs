@@ -41,10 +41,10 @@ namespace ProductManagement.Test
         }
 
         [Fact]
-        public void GetProducts_ReturnsAllProducts()
+        public async Task GetProducts_ReturnsAllProducts()
         {
             // Act
-            var products = _productRepository.GetAll();
+            var products = await _productRepository.GetAllAsync();
 
             // Assert
             Assert.NotNull(products);

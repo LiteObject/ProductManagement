@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using ProductManagement.API;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ProductManagement.Test
 {
     public class ApiIntegrationTest(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly WebApplicationFactory<Program> _factory = factory;
+        // private readonly ITestOutputHelper _output;
 
         [Fact]
         public async Task Get_Products_ReturnsSuccessStatusCode()

@@ -8,11 +8,11 @@ namespace ProductManagement.App.Services
     /// </summary>
     public interface IProductService
     {
-        IEnumerable<ProductDto> GetAllProducts();
-        ProductDto? GetProductById(int id);
-        int AddProduct(CreateProductDto productDto);
-        void UpdateProduct(UpdateProductDto productDto);
-        void DeleteProduct(int id);
+        Task<IEnumerable<ProductDto>> GetAllProductsAsync();
+        Task<ProductDto?> GetProductByIdAsync(int id);
+        Task<int> AddProductAsync(CreateProductDto productDto);
+        Task UpdateProductAsync(UpdateProductDto productDto);
+        Task DeleteProductAsync(int id);
     }
 }
 

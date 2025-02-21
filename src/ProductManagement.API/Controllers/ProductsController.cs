@@ -19,9 +19,9 @@ namespace ProductManagement.API.Controllers
         private static readonly Action<ILogger, string, Exception?> _logInstantiated =
            LoggerMessage.Define<string>(LogLevel.Information, new EventId(1, nameof(ProductsController)), "Instantiated {ControllerName}");
         private static readonly Action<ILogger, string, Exception?> _logInvoked =
-            LoggerMessage.Define<string>(LogLevel.Information, new EventId(2, nameof(Get)), "Invoked {MethodName}");
+            LoggerMessage.Define<string>(LogLevel.Information, new EventId(2, nameof(GetAsync)), "Invoked {MethodName}");
         private static readonly Action<ILogger, string, int, Exception?> _logInvokedWithId =
-            LoggerMessage.Define<string, int>(LogLevel.Information, new EventId(3, nameof(GetProductById)), "Invoked {MethodName} with ID: {Id}");
+            LoggerMessage.Define<string, int>(LogLevel.Information, new EventId(3, nameof(GetProductByIdAsync)), "Invoked {MethodName} with ID: {Id}");
 
 
         /// <summary>
@@ -43,10 +43,10 @@ namespace ProductManagement.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet(Name = "GetProducts")]
-        public IActionResult Get()
+        public async Task<IActionResult> GetAsync()
         {
-            _logInvoked(_logger, nameof(Get), null);
-            var products = _productService.GetAllProducts();
+            _logInvoked(_logger, nameof(GetAsync), null);
+            var products = await _productService.GetAllProductsAsync();
             return Ok(products);
         }
 
@@ -56,10 +56,10 @@ namespace ProductManagement.API.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}", Name = "GetProductById")]
-        public IActionResult GetProductById(int id)
+        public async Task<IActionResult> GetProductByIdAsync(int id)
         {
-            _logInvokedWithId(_logger, nameof(GetProductById), id, null);
-            var product = _productService.GetProductById(id);
+            _logInvokedWithId(_logger, nameof(GetProductByIdAsync), id, null);
+            var product = await _productService.GetProductByIdAsync(id);
 
             if (product == null)
             {
@@ -75,9 +75,9 @@ namespace ProductManagement.API.Controllers
         /// <param name="productDto">The product DTO.</param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post(CreateProductDto productDto)
+        public async Task<IActionResult> PostAsync(CreateProductDto productDto)
         {
-            int newProductId = _productService.AddProduct(productDto);
+            int newProductId = await _productService.AddProductAsync(productDto);
             return CreatedAtRoute("GetProductById", new { id = newProductId }, productDto);
         }
 
@@ -88,14 +88,14 @@ namespace ProductManagement.API.Controllers
         /// <param name="productDto"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        public IActionResult Put(int id, UpdateProductDto productDto)
+        public async Task<IActionResult> Put(int id, UpdateProductDto productDto)
         {
             if (id != productDto?.Id)
             {
                 return BadRequest();
             }
 
-            _productService.UpdateProduct(productDto);
+            await _productService.UpdateProductAsync(productDto);
             return NoContent();
         }
     }

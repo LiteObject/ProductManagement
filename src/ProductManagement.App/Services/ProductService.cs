@@ -25,42 +25,42 @@ namespace ProductManagement.App.Services
             _logger.LogProductServiceInstantiated();
         }
 
-        public IEnumerable<ProductDto> GetAllProducts()
+        public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
         {
             _logger.LogGetAllProductsInvoked();
-            IEnumerable<Product> products = _productRepository.GetAll();
+            IEnumerable<Product> products = await _productRepository.GetAllAsync();
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public ProductDto? GetProductById(int id)
+        public async Task<ProductDto?> GetProductByIdAsync(int id)
         {
             _logger.LogGetProductByIdInvoked(id);
-            var product = _productRepository.GetById<int>(id);
+            var product = await _productRepository.GetByIdAsync<int>(id);
             return product == null ? null : _mapper.Map<ProductDto>(product);
         }
 
-        public int AddProduct(CreateProductDto productDto)
+        public async Task<int> AddProductAsync(CreateProductDto productDto)
         {
             _logger.LogAddProductInvoked();
             var product = _mapper.Map<Product>(productDto);
-            _productRepository.Add(product);
+            await _productRepository.AddAsync(product);
             return product.Id;
         }
 
-        public void UpdateProduct(UpdateProductDto productDto)
+        public async Task UpdateProductAsync(UpdateProductDto productDto)
         {
             _logger.LogUpdateProductInvoked();
             var product = _mapper.Map<Product>(productDto);
-            _productRepository.Update(product);
+            await _productRepository.UpdateAsync(product);
         }
 
-        public void DeleteProduct(int id)
+        public async Task DeleteProductAsync(int id)
         {
             _logger.LogDeleteProductInvoked(id);
-            var product = _productRepository.GetById<int>(id);
+            var product = await _productRepository.GetByIdAsync<int>(id);
             if (product != null)
             {
-                _productRepository.Delete(product);
+                await _productRepository.DeleteAsync(product);
             }
         }
     }
@@ -71,19 +71,19 @@ namespace ProductManagement.App.Services
             LoggerMessage.Define(LogLevel.Information, new EventId(1, nameof(ProductService)), "ProductService instantiated");
 
         private static readonly Action<ILogger, Exception?> _getAllProductsInvoked =
-            LoggerMessage.Define(LogLevel.Information, new EventId(2, nameof(ProductService.GetAllProducts)), $"{nameof(ProductService.GetAllProducts)} invoked");
+            LoggerMessage.Define(LogLevel.Information, new EventId(2, nameof(ProductService.GetAllProductsAsync)), $"{nameof(ProductService.GetAllProductsAsync)} invoked");
 
         private static readonly Action<ILogger, int, Exception?> _getProductByIdInvoked =
-            LoggerMessage.Define<int>(LogLevel.Information, new EventId(3, nameof(ProductService.GetProductById)), $"{nameof(ProductService.GetProductById)} invoked with ID: {{Id}}");
+            LoggerMessage.Define<int>(LogLevel.Information, new EventId(3, nameof(ProductService.GetProductByIdAsync)), $"{nameof(ProductService.GetProductByIdAsync)} invoked with ID: {{Id}}");
 
         private static readonly Action<ILogger, Exception?> _addProductInvoked =
-            LoggerMessage.Define(LogLevel.Information, new EventId(4, nameof(ProductService.AddProduct)), $"{nameof(ProductService.AddProduct)} invoked");
+            LoggerMessage.Define(LogLevel.Information, new EventId(4, nameof(ProductService.AddProductAsync)), $"{nameof(ProductService.AddProductAsync)} invoked");
 
         private static readonly Action<ILogger, Exception?> _updateProductInvoked =
-            LoggerMessage.Define(LogLevel.Information, new EventId(5, nameof(ProductService.UpdateProduct)), $"{nameof(ProductService.UpdateProduct)} invoked");
+            LoggerMessage.Define(LogLevel.Information, new EventId(5, nameof(ProductService.UpdateProductAsync)), $"{nameof(ProductService.UpdateProductAsync)} invoked");
 
         private static readonly Action<ILogger, int, Exception?> _deleteProductInvoked =
-            LoggerMessage.Define<int>(LogLevel.Information, new EventId(6, nameof(ProductService.DeleteProduct)), $"{nameof(ProductService.DeleteProduct)} invoked with ID: {{Id}}");
+            LoggerMessage.Define<int>(LogLevel.Information, new EventId(6, nameof(ProductService.DeleteProductAsync)), $"{nameof(ProductService.DeleteProductAsync)} invoked with ID: {{Id}}");
 
 
         public static void LogProductServiceInstantiated(this ILogger logger) => _productServiceInstantiated(logger, null);
