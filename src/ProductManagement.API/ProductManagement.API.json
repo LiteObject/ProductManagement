@@ -25,17 +25,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductDto"
+                "$ref": "#/components/schemas/CreateProductDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductDto"
+                "$ref": "#/components/schemas/CreateProductDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductDto"
+                "$ref": "#/components/schemas/CreateProductDto"
               }
             }
           },
@@ -70,12 +70,79 @@
             "description": "OK"
           }
         }
+      },
+      "put": {
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     }
   },
   "components": {
     "schemas": {
-      "ProductDto": {
+      "CreateProductDto": {
+        "required": [
+          "name",
+          "price"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "minimum": 0.01,
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateProductDto": {
         "required": [
           "name",
           "price"
@@ -87,6 +154,8 @@
             "format": "int32"
           },
           "name": {
+            "maxLength": 100,
+            "minLength": 0,
             "type": "string",
             "nullable": true
           },
@@ -96,6 +165,8 @@
             "format": "double"
           },
           "description": {
+            "maxLength": 1000,
+            "minLength": 0,
             "type": "string",
             "nullable": true
           }

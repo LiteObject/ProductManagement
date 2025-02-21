@@ -29,8 +29,8 @@ namespace ProductManagement.Test
         {
             var products = new List<Product>
             {
-                new() { Id = 1, Name = "Product 1", Price = 10, Description = "Description 1" },
-                new() { Id = 2, Name = "Product 2", Price = 20, Description = "Description 2" }
+                Product.Create("Product 1", 10, "Description 1"),
+                Product.Create("Product 2", 20, "Description 2")
             };
 
             _context.Products.AddRange(products);
@@ -46,7 +46,7 @@ namespace ProductManagement.Test
             // Assert
             Assert.NotNull(products);
             Assert.NotEmpty(products);
-            Assert.IsAssignableFrom<IEnumerable<Product>>(products);
+            Assert.IsType<IEnumerable<Product>>(products, exactMatch: false);
         }
     }
 }

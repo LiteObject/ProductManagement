@@ -6,6 +6,7 @@ using ProductManagement.App.Services;
 using ProductManagement.Core.Entities;
 using ProductManagement.Core.Interfaces;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ProductManagement.Test
 {
@@ -13,10 +14,14 @@ namespace ProductManagement.Test
     {
         private readonly Mock<IProductRepository> _mockProductRepository;
         private readonly IMapper _mapper;
-        private readonly IProductService _productService;
+        // CA1859 suggests changing the type to the concrete class ProductService for improved performance.
+        private readonly ProductService _productService;
+        private readonly ITestOutputHelper output;
 
-        public ProductServiceTests()
+        public ProductServiceTests(ITestOutputHelper output)
         {
+            this.output = output;
+
             _mockProductRepository = new Mock<IProductRepository>();
 
             var config = new MapperConfiguration(cfg =>
@@ -26,13 +31,16 @@ namespace ProductManagement.Test
 
             _mapper = config.CreateMapper();
 
-            _productService = new ProductService(_mockProductRepository.Object, _mapper);
+            ILoggerFactory loggerFactory = new Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory();
+            var logger = loggerFactory.CreateLogger<ProductService>();
+
+            _productService = new ProductService(_mockProductRepository.Object, _mapper, logger);
 
             // Set up mock data
             var products = new List<Product>
             {
-                new() { Id = 1, Name = "Product 1", Price = 10, Description = "Description 1" },
-                new() { Id = 2, Name = "Product 2", Price = 20, Description = "Description 2" }
+                Product.Create("Product 1", 10, "Description 1"),
+                Product.Create("Product 2", 20, "Description 2")
             };
 
             _mockProductRepository.Setup(repo => repo.GetAll()).Returns(products);
@@ -48,7 +56,7 @@ namespace ProductManagement.Test
             // Assert
             Assert.NotNull(products);
             Assert.NotEmpty(products);
-            Assert.IsAssignableFrom<IEnumerable<ProductDto>>(products);
+            Assert.IsType<IEnumerable<ProductDto>>(products, exactMatch: false);
         }
 
         [Fact]
@@ -59,10 +67,11 @@ namespace ProductManagement.Test
 
             // Act
             ProductDto? productDto = _productService.GetProductById(product?.Id ?? 0);
+            output.WriteLine("The product {0}", productDto);
 
             // Assert
             Assert.NotNull(productDto);
-            Assert.IsType<ProductDto>(productDto);
+            Assert.IsType<ProductDto>(productDto, exactMatch: false);
             Assert.Equal(product?.Id, productDto.Id);
             Assert.Equal(product?.Name, productDto.Name);
             Assert.Equal(product?.Price, productDto.Price);
