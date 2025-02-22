@@ -97,7 +97,7 @@ namespace ProductManagement.Test
             var updateProductDto = new UpdateProductDto { Id = 1, Name = "Updated Product", Price = 40, Description = "Updated Product Description" };
 
             // Act
-            var result = await _productsController.Put(1, updateProductDto);
+            var result = await _productsController.PutAsync(1, updateProductDto);
 
             // Assert
             Assert.IsType<NoContentResult>(result);
@@ -110,7 +110,7 @@ namespace ProductManagement.Test
             var updateProductDto = new UpdateProductDto { Id = 1, Name = "Updated Product", Price = 40, Description = "Updated Product Description" };
 
             // Act
-            var result = await _productsController.Put(2, updateProductDto);
+            var result = await _productsController.PutAsync(2, updateProductDto);
 
             // Assert
             Assert.IsType<BadRequestResult>(result);
