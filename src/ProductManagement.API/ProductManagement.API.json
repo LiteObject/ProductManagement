@@ -112,6 +112,18 @@
           }
         }
       }
+    },
+    "/Products/throw": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {

@@ -27,6 +27,7 @@ namespace ProductManagement.API
 
             // Add services to the container.
             builder.Services.AddControllers();
+            builder.Services.AddProblemDetails();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi(); // Document name is v1
             builder.Services.AddOpenApi("internal"); // Document name is internal
@@ -61,7 +62,13 @@ namespace ProductManagement.API
                 //await using var serviceScope = app.Services.CreateAsyncScope();
                 //await using var dbContext = serviceScope.ServiceProvider.GetRequiredService<ProductContext>();
                 //await dbContext.Database.EnsureCreatedAsync();
+
+                app.UseDeveloperExceptionPage();
             }
+
+            // app.UseMiddleware<ExceptionHandlingMiddleware>();
+            app.UseExceptionHandler();
+            app.UseStatusCodePages();
 
             app.UseHttpsRedirection();
 

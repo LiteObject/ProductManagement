@@ -23,7 +23,6 @@ namespace ProductManagement.API.Controllers
         private static readonly Action<ILogger, string, int, Exception?> _logInvokedWithId =
             LoggerMessage.Define<string, int>(LogLevel.Information, new EventId(3, nameof(GetProductByIdAsync)), "Invoked {MethodName} with ID: {Id}");
 
-
         /// <summary>
         /// Constructor for ProductsController.
         /// </summary>
@@ -77,6 +76,7 @@ namespace ProductManagement.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync(CreateProductDto productDto)
         {
+            _logInvoked(_logger, nameof(PostAsync), null);
             int newProductId = await _productService.AddProductAsync(productDto);
             return CreatedAtRoute("GetProductById", new { id = newProductId }, productDto);
         }
@@ -88,15 +88,27 @@ namespace ProductManagement.API.Controllers
         /// <param name="productDto"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, UpdateProductDto productDto)
+        public async Task<IActionResult> PutAsync(int id, UpdateProductDto productDto)
         {
             if (id != productDto?.Id)
             {
                 return BadRequest();
             }
 
+            _logInvokedWithId(_logger, nameof(PutAsync), id, null);
             await _productService.UpdateProductAsync(productDto);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Test method to produce an exception for testing global exception handling.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("throw")]
+        public IActionResult ThrowException()
+        {
+            // Throw an exception for testing purposes
+            throw new InvalidOperationException("This is a test exception for global exception handling.");
         }
     }
 }
