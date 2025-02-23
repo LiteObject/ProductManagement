@@ -20,10 +20,8 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
-    env:
-      POSTGRES_USER: yourusername
-      POSTGRES_PASSWORD: yourpassword
-      POSTGRES_DB: ProductManagementDb
+    env:      
+      # Here database container is ephemeral, so only use this approach for non-sensitive test credentials, GitHub Secrets is a better choice for sensitive data
       ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=ProductManagementDb;Username=yourusername;Password=yourpassword"
       SOLUTION_FILE: src/ProductManagement.sln
       CODE_COVERAGE_THRESHOLD: 50
@@ -31,9 +29,10 @@ jobs:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          # Here database container is ephemeral, so only use this approach for non-sensitive test credentials, GitHub Secrets is a better choice for sensitive data
+          POSTGRES_USER: yourusername
+          POSTGRES_PASSWORD: yourpassword
+          POSTGRES_DB: ProductManagementDb
         ports:
           - 5432:5432
         # A health check for Postgres (adjust as necessary):
