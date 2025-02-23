@@ -62,7 +62,7 @@ jobs:
       run: dotnet tool install -g dotnet-ef
 
     - name: Apply Migrations
-      run: dotnet ef database update --project ProductManagement.Infra --startup-project ProductManagement.API       
+      run: dotnet ef database update --project src/ProductManagement.Infra/ProductManagement.Infra.csproj --startup-project src/ProductManagement.API/ProductManagement.API.csproj   
 
     - name: Run tests with coverage
       run: |
