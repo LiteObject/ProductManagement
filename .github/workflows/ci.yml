@@ -37,7 +37,7 @@ jobs:
           - 5432:5432
         # A health check for Postgres (adjust as necessary):
         options: >-
-          --health-cmd "pg_isready -U ${{ env.POSTGRES_USER }}" 
+          --health-cmd "pg_isready -U yourusername" 
           --health-interval 10s 
           --health-timeout 5s 
           --health-retries 5
