@@ -63,7 +63,8 @@ jobs:
         sudo apt-get install -y jq        
         dotnet test ${{ env.SOLUTION_FILE }} --no-restore --verbosity normal --logger trx --collect "Code Coverage;Format=cobertura" --results-directory ./TestResults
       env:
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1      
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1   
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=ProductManagementDb;Username=yourusername;Password=yourpassword"
 
     # - name: List test results directory
     #   run: ls -R ./TestResults    
