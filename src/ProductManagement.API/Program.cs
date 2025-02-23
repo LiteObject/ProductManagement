@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using ProductManagement.App.Profiles;
 using ProductManagement.App.Services;
@@ -75,6 +76,13 @@ namespace ProductManagement.API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            // Map health check endpoints
+            app.MapHealthChecks("/health");
+            app.MapHealthChecks("/health/db", new HealthCheckOptions
+            {
+                Predicate = check => check.Name.Contains("ProductContext")
+            });
 
             app.Run();
         }

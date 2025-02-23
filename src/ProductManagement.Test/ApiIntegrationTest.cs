@@ -5,10 +5,10 @@ using Xunit.Abstractions;
 
 namespace ProductManagement.Test
 {
-    public class ApiIntegrationTest(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+    public class ApiIntegrationTest(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly WebApplicationFactory<Program> _factory = factory;
-        // private readonly ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output = testOutput;
 
         [Fact]
         public async Task Get_Products_ReturnsSuccessStatusCode()
@@ -18,7 +18,8 @@ namespace ProductManagement.Test
             var request = "/products";
 
             // Act
-            var response = await client.GetAsync(request);
+            HttpResponseMessage response = await client.GetAsync(request);
+            _output.WriteLine($"Response Status: {response.StatusCode}, Response Content: {await response.Content.ReadAsStringAsync()}");
 
             // Assert
             if (!response.IsSuccessStatusCode)
