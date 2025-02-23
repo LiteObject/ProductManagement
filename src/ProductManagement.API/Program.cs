@@ -59,6 +59,14 @@ namespace ProductManagement.API
 
             var app = builder.Build();
 
+            // Ensure database is created (apply migrations or create the schema)
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var dbContext = scope.ServiceProvider.GetRequiredService<ProductContext>();
+            //    // or call dbContext.Database.Migrate() if using migrations
+            //    dbContext.Database.EnsureCreated();
+            //}
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

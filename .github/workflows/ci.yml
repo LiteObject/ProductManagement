@@ -38,7 +38,8 @@ jobs:
 
     env:
       SOLUTION_FILE: src/ProductManagement.sln
-      CODE_COVERAGE_THRESHOLD: 50  
+      CODE_COVERAGE_THRESHOLD: 50
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=ProductManagementDb;Username=yourusername;Password=yourpassword"
 
     steps:
     - name: Checkout code
@@ -57,6 +58,12 @@ jobs:
       run: |
         dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore -warnaserror      
 
+    - name: Install EF Core Tools
+      run: dotnet tool install -g dotnet-ef
+
+    - name: Apply Migrations
+      run: dotnet ef database update --project ProductManagement.Infra --startup-project ProductManagement.API       
+
     - name: Run tests with coverage
       run: |
         sudo apt-get update
@@ -64,8 +71,7 @@ jobs:
         dotnet test ${{ env.SOLUTION_FILE }} --no-restore --verbosity normal --logger trx --collect "Code Coverage;Format=cobertura" --results-directory ./TestResults
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: 1   
-        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=ProductManagementDb;Username=yourusername;Password=yourpassword"
-
+       
     # - name: List test results directory
     #   run: ls -R ./TestResults    
 
