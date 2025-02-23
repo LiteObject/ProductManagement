@@ -32,8 +32,8 @@ namespace ProductManagement.Test
             // Arrange
             var products = new List<ProductDto>
             {
-                new ProductDto { Id = 1, Name = "Product 1", Price = 10, Description = "Description 1" },
-                new ProductDto { Id = 2, Name = "Product 2", Price = 20, Description = "Description 2" }
+                new() { Id = 1, Name = "Product 1", Price = 10, Description = "Description 1" },
+                new() { Id = 2, Name = "Product 2", Price = 20, Description = "Description 2" }
             };
             _mockProductService.Setup(service => service.GetAllProductsAsync()).ReturnsAsync(products);
 
@@ -66,7 +66,7 @@ namespace ProductManagement.Test
         public async Task GetProductByIdAsync_ReturnsNotFoundResult_WhenProductNotFound()
         {
             // Arrange
-            _mockProductService.Setup(service => service.GetProductByIdAsync(1)).ReturnsAsync((ProductDto)null);
+            _mockProductService.Setup(service => service.GetProductByIdAsync(1)).ReturnsAsync((ProductDto?)null);
 
             // Act
             var result = await _productsController.GetProductByIdAsync(1);
@@ -87,6 +87,7 @@ namespace ProductManagement.Test
 
             // Assert
             var createdAtRouteResult = Assert.IsType<CreatedAtRouteResult>(result);
+            Assert.NotNull(createdAtRouteResult.RouteValues);
             Assert.Equal(1, createdAtRouteResult.RouteValues["id"]);
         }
 
