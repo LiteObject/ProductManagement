@@ -42,7 +42,13 @@ namespace ProductManagement.API
 
             // Register the ProductContext with the dependency injection container
             builder.Services.AddDbContext<ProductContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null);
+                }));
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>(); // Register IProductRepo with its implementation
             builder.Services.AddScoped<IProductService, ProductService>(); // Register IProductService with its implementation
