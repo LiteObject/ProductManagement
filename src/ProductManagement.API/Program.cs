@@ -33,15 +33,29 @@ namespace ProductManagement.API
             builder.Services.AddOpenApi(); // Document name is v1
             builder.Services.AddOpenApi("internal"); // Document name is internal
 
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException(
+                                   "Could not find a connection string named 'DefaultConnection'.");
+            }
+
             // Register the ProductContext with the dependency injection container
             builder.Services.AddDbContext<ProductContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(connectionString));
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>(); // Register IProductRepo with its implementation
             builder.Services.AddScoped<IProductService, ProductService>(); // Register IProductService with its implementation
 
             // Register AutoMapper
-            builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
+            builder.Services.AddAutoMapper(typeof(ProductMappingProfile));                       
+
+            // Register health checks
+            builder.Services.AddHealthChecks()
+                .AddNpgSql(connectionString); // Add a health check for the ProductContext
+
+            builder.Services.AddHealthChecks()
+                .AddDbContextCheck<ProductContext>();
 
             var app = builder.Build();
 
