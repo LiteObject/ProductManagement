@@ -45,7 +45,7 @@ namespace ProductManagement.API.Controllers
         public async Task<IActionResult> GetAsync()
         {
             _logInvoked(_logger, nameof(GetAsync), null);
-            var products = await _productService.GetAllProductsAsync();
+            var products = await _productService.GetAllProductsAsync().ConfigureAwait(false);
             return Ok(products);
         }
 
@@ -58,7 +58,7 @@ namespace ProductManagement.API.Controllers
         public async Task<IActionResult> GetProductByIdAsync(int id)
         {
             _logInvokedWithId(_logger, nameof(GetProductByIdAsync), id, null);
-            var product = await _productService.GetProductByIdAsync(id);
+            var product = await _productService.GetProductByIdAsync(id).ConfigureAwait(false);
 
             if (product == null)
             {
@@ -77,7 +77,7 @@ namespace ProductManagement.API.Controllers
         public async Task<IActionResult> PostAsync(CreateProductDto productDto)
         {
             _logInvoked(_logger, nameof(PostAsync), null);
-            int newProductId = await _productService.AddProductAsync(productDto);
+            int newProductId = await _productService.AddProductAsync(productDto).ConfigureAwait(false);
             return CreatedAtRoute("GetProductById", new { id = newProductId }, productDto);
         }
 
@@ -96,7 +96,7 @@ namespace ProductManagement.API.Controllers
             }
 
             _logInvokedWithId(_logger, nameof(PutAsync), id, null);
-            await _productService.UpdateProductAsync(productDto);
+            await _productService.UpdateProductAsync(productDto).ConfigureAwait(false);
             return NoContent();
         }
 
