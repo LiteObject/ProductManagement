@@ -20,26 +20,28 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: yourusername
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: ProductManagementDb
+      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=${{ env.POSTGRES_DB }};Username=${{ env.POSTGRES_USER }};Password=${{ env.POSTGRES_PASSWORD }}"
+      SOLUTION_FILE: src/ProductManagement.sln
+      CODE_COVERAGE_THRESHOLD: 50
     services:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_USER: yourusername
-          POSTGRES_PASSWORD: yourpassword
-          POSTGRES_DB: ProductManagementDb
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
         ports:
           - 5432:5432
         # A health check for Postgres (adjust as necessary):
         options: >-
-          --health-cmd "pg_isready -U yourusername" 
+          --health-cmd "pg_isready -U ${{ env.POSTGRES_USER }}" 
           --health-interval 10s 
           --health-timeout 5s 
           --health-retries 5
-
-    env:
-      SOLUTION_FILE: src/ProductManagement.sln
-      CODE_COVERAGE_THRESHOLD: 50
-      ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=ProductManagementDb;Username=yourusername;Password=yourpassword"
 
     steps:
     - name: Checkout code
