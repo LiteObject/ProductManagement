@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ProductManagement.App.Profiles;
 using ProductManagement.App.Services;
@@ -7,6 +8,7 @@ using ProductManagement.Core.Interfaces;
 using ProductManagement.Infra.Contexts;
 using ProductManagement.Infra.Repositories;
 using Scalar.AspNetCore;
+using System.Threading.RateLimiting;
 
 namespace ProductManagement.API
 {
@@ -27,8 +29,20 @@ namespace ProductManagement.API
             builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             // Add services to the container.
-            builder.Services.AddControllers();
-            builder.Services.AddProblemDetails();
+            builder.Services.AddControllers(options => {
+
+                // Will return "406 Not Acceptable" if formatter doesn't match "Accept" header.
+                options.ReturnHttpNotAcceptable = true;
+            });
+
+            builder.Services.AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = (context) =>
+                {                   
+                    context.ProblemDetails.Extensions.Add("Host", Environment.MachineName);
+                };
+            });
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi(); // Document name is v1
             builder.Services.AddOpenApi("internal"); // Document name is internal
@@ -63,7 +77,20 @@ namespace ProductManagement.API
             builder.Services.AddHealthChecks()
                 .AddDbContextCheck<ProductContext>();
 
+            // Register rate limiting
+            builder.Services.AddRateLimiter(_ => _
+                            // Define a fixed window policy
+                            .AddFixedWindowLimiter(policyName: "FixedPolicy", options =>
+                            {
+                                options.PermitLimit = 4; // Allow 4 requests
+                                options.Window = TimeSpan.FromSeconds(12); // Per 12 seconds
+                                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                                options.QueueLimit = 2; // Queue 1 request if limit is exceeded
+                            }));
+
             var app = builder.Build();
+
+            app.UseRateLimiter();
 
             // Ensure database is created (apply migrations or create the schema)
             //using (var scope = app.Services.CreateScope())

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using ProductManagement.App.DTOs;
 using ProductManagement.App.Services;
 
@@ -10,6 +11,7 @@ namespace ProductManagement.API.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]")]
+    [EnableRateLimiting("FixedPolicy")]
     public sealed class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
