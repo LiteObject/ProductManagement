@@ -1,5 +1,7 @@
-﻿using ProductManagement.Core.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using ProductManagement.Core.Entities;
 using ProductManagement.Core.Interfaces;
+using ProductManagement.Core.Models;
 using ProductManagement.Infra.Contexts;
 
 namespace ProductManagement.Infra.Repositories
@@ -13,12 +15,32 @@ namespace ProductManagement.Infra.Repositories
     /// ensuring that data operations related to Product entities are handled 
     /// efficiently and consistently.
     /// </summary>
-    public class ProductRepository : 
-        GenericRepository<Product, ProductContext>, 
+    public class ProductRepository(ProductContext context) :
+        GenericRepository<Product, ProductContext>(context), 
         IProductRepository
     {
-        public ProductRepository(ProductContext context) : base(context)
+        public async Task<(IEnumerable<Product>, PaginationMetadata)> GetAllAsync(string? searchKeyword, int pageNumber = 1, int pageSize = 10)
         {
+            IQueryable<Product> collection = _context.Products;
+
+            if (!string.IsNullOrWhiteSpace(searchKeyword))
+            {
+                searchKeyword = searchKeyword.Trim();
+                collection = collection.Where(e => e.Name.Contains(searchKeyword) 
+                    || (e.Description != null && e.Description.Contains(searchKeyword)));
+            }
+
+            int totalItems = await collection.CountAsync().ConfigureAwait(false);
+
+            PaginationMetadata paginationMetadata = new (totalItems, pageNumber, pageSize);
+
+            var products = await collection.OrderBy(p => p.Name)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync()
+                .ConfigureAwait(false);
+
+            return (products, paginationMetadata);
         }
     }
 }

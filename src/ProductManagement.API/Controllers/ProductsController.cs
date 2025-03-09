@@ -44,10 +44,19 @@ namespace ProductManagement.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet(Name = "GetProducts")]
-        public async Task<IActionResult> GetAsync()
+        public async Task<IActionResult> GetAsync(string? searchKeyword, int pageNumber = 1, int pageSize = 10)
         {
             _logInvoked(_logger, nameof(GetAsync), null);
-            var products = await _productService.GetAllProductsAsync().ConfigureAwait(false);
+
+            if (pageNumber < 1 || pageSize < 1 || pageSize > 100)
+            {
+                // TODO: Add a custom error message for invalid page number or page size.
+                return BadRequest();
+            }
+
+            (IEnumerable<ProductDto>, Core.Models.PaginationMetadata) products = 
+                await _productService.GetAllProductsAsync(searchKeyword, pageNumber, pageSize).ConfigureAwait(false);
+
             return Ok(products);
         }
 
@@ -92,25 +101,22 @@ namespace ProductManagement.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAsync(int id, UpdateProductDto productDto)
         {
+            _logInvokedWithId(_logger, nameof(PutAsync), id, null);
+
             if (id != productDto?.Id)
             {
                 return BadRequest();
             }
 
-            _logInvokedWithId(_logger, nameof(PutAsync), id, null);
+            var product = await _productService.GetProductByIdAsync(id).ConfigureAwait(false);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
             await _productService.UpdateProductAsync(productDto).ConfigureAwait(false);
             return NoContent();
-        }
-
-        /// <summary>
-        /// Test method to produce an exception for testing global exception handling.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("throw")]
-        public IActionResult ThrowException()
-        {
-            // Throw an exception for testing purposes
-            throw new InvalidOperationException("This is a test exception for global exception handling.");
         }
     }
 }

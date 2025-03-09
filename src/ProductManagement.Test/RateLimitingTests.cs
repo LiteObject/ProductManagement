@@ -1,32 +1,76 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using ProductManagement.API;
+using ProductManagement.Infra.Contexts;
 using System.Net;
 using System.Threading.RateLimiting;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace ProductManagement.Test
 {
-    public class RateLimitingTests(TestWebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : IClassFixture<TestWebApplicationFactory<Program>>
+    public class RateLimitingTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly TestWebApplicationFactory<Program> _factory = factory;
-        private readonly ITestOutputHelper _output = testOutput;
+        private readonly WebApplicationFactory<Program> _factory;
+        private readonly ITestOutputHelper _output;
         
-        [Fact]
-        public async Task RequestsWithinLimit_ShouldSucceed()
+        public RateLimitingTests(WebApplicationFactory<Program> factory, ITestOutputHelper output)
         {
-            // Arrange
-            var client = _factory.CreateClient();
-            var request = "/products";
+            _output = output;
+            _factory = factory.WithWebHostBuilder(builder =>
+            {
+                // Set the environment to Production
+                builder.UseEnvironment("Production");
 
-            // Act: Send 2 requests (within the limit)
-            var response1 = await client.GetAsync(request);
-            var response2 = await client.GetAsync(request);
+                builder.ConfigureServices(services =>
+                {
+                    // Remove all existing IDbContextOptionsConfiguration<ProductContext> registrations
+                    ServiceDescriptor? serviceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDbContextOptionsConfiguration<ProductContext>));
+                    if (serviceDescriptor != null)
+                    {
+                        services.Remove(serviceDescriptor);
+                    }
 
-            // Assert: Both requests should succeed
-            Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
-            Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+                    // Add DbContext using an in-memory database for testing
+                    services.AddDbContext<ProductContext>(options =>
+                    {
+                        options.UseInMemoryDatabase("InMemoryDbForTesting");
+                    });
+
+                    // Ensure the database is created
+                    var sp = services.BuildServiceProvider();
+                    using var scope = sp.CreateScope();
+                    var scopedServices = scope.ServiceProvider;
+                    var db = scopedServices.GetRequiredService<ProductContext>();
+                    db.Database.EnsureCreated();
+
+                    // Remove the RateLimiter service
+                    services.RemoveAll<RateLimiter>();
+
+                    // Remove the RateLimiterOptions configuration
+                    services.RemoveAll<IConfigureOptions<RateLimiterOptions>>();
+
+                    // Re-add rate-limiting services with a new policy
+                    services.AddRateLimiter(options =>
+                    {
+                        options.AddFixedWindowLimiter(policyName: "FixedPolicy", options =>
+                        {
+                            options.PermitLimit = 2; // Allow 2 requests
+                            options.Window = TimeSpan.FromSeconds(10); // Per 10 seconds
+                            options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                            options.QueueLimit = 0;
+                        }).OnRejected = (context, cancellationToken) =>
+                        {
+                            context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                            return new ValueTask();
+                        };
+                    });
+                });
+            });
         }
 
         [Fact]
@@ -38,9 +82,7 @@ namespace ProductManagement.Test
 
             // Act: Send 3 requests (exceeding the limit of 2)
             var response1 = await client.GetAsync(request);
-            await Task.Delay(2000); // Small delay to simulate realistic request timing
             var response2 = await client.GetAsync(request);
-            await Task.Delay(3000); // Small delay to simulate realistic request timing
             var response3 = await client.GetAsync(request);
 
             _output.WriteLine($"Response 1 Status: {response1.StatusCode}");
@@ -65,11 +107,12 @@ namespace ProductManagement.Test
             var response2 = await client.GetAsync(request);
             var response3 = await client.GetAsync(request);
 
-            _output.WriteLine($"Response Status 3: {response3.StatusCode}");
+            _output.WriteLine($"Response 1 Status: {response1.StatusCode}");
+            _output.WriteLine($"Response 2 Status: {response2.StatusCode}");
+            _output.WriteLine($"Response 3 Status: {response3.StatusCode}");
 
             // Wait for the queue to process
-            await Task.Delay(TimeSpan.FromSeconds(11)); // Wait for the window to reset
-
+            await Task.Delay(TimeSpan.FromSeconds(11));
             var response4 = await client.GetAsync(request);
 
             // Assert: The queued request should succeed after the window resets

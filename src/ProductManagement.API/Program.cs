@@ -40,7 +40,13 @@ namespace ProductManagement.API
                 options.CustomizeProblemDetails = (context) =>
                 {                   
                     context.ProblemDetails.Extensions.Add("Host", Environment.MachineName);
-                };
+
+                    // Add stack trace(only for development or debugging purposes)
+                    //if (context.Exception != null)
+                    //{
+                    //    context.ProblemDetails.Extensions.Add("stackTrace", context.Exception.StackTrace);
+                    //}
+                };                
             });
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -78,7 +84,7 @@ namespace ProductManagement.API
                 .AddDbContextCheck<ProductContext>();
 
             // Register rate limiting
-            builder.Services.AddRateLimiter(_ => _
+            builder.Services.AddRateLimiter(options => options
                             // Define a fixed window policy
                             .AddFixedWindowLimiter(policyName: "FixedPolicy", options =>
                             {
@@ -86,7 +92,11 @@ namespace ProductManagement.API
                                 options.Window = TimeSpan.FromSeconds(12); // Per 12 seconds
                                 options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                                 options.QueueLimit = 2; // Queue 1 request if limit is exceeded
-                            }));
+                            }).OnRejected = (context, cancellationToken) =>
+                            {
+                                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                                return new ValueTask();
+                            });
 
             var app = builder.Build();
 
@@ -121,6 +131,13 @@ namespace ProductManagement.API
 
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                // Adds a middleware to the pipeline that will catch exceptions, log them, and
+                // re-execute the request in an alternate pipeline. The request will not be
+                // re-executed if the response has already started.
+                app.UseExceptionHandler();
+            }
 
             // app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseExceptionHandler();
@@ -139,7 +156,10 @@ namespace ProductManagement.API
                 Predicate = check => check.Name.Contains("ProductContext")
             });
 
+            app.MapGet("/throw", (HttpContext context) => throw new InvalidOperationException("This is a test exception"));
+
             app.Run();
         }
     }
 }
+

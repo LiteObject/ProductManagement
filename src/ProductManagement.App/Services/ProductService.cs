@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using ProductManagement.App.DTOs;
 using ProductManagement.Core.Entities;
 using ProductManagement.Core.Interfaces;
+using ProductManagement.Core.Models;
+using System.Linq.Expressions;
 
 namespace ProductManagement.App.Services
 {
@@ -25,17 +27,18 @@ namespace ProductManagement.App.Services
             _logger.LogProductServiceInstantiated();
         }
 
-        public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
+        public async Task<(IEnumerable<ProductDto>, PaginationMetadata)> GetAllProductsAsync(string? searchKeyword, int pageNumber = 1, int pageSize = 10)
         {
             _logger.LogGetAllProductsInvoked();
-            IEnumerable<Product> products = await _productRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ProductDto>>(products);
+            var (products, paginationMetadata) = await _productRepository.GetAllAsync(searchKeyword, pageNumber, pageSize).ConfigureAwait(false);
+            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            return (productDtos, paginationMetadata);
         }
 
         public async Task<ProductDto?> GetProductByIdAsync(int id)
         {
             _logger.LogGetProductByIdInvoked(id);
-            var product = await _productRepository.GetByIdAsync<int>(id);
+            var product = await _productRepository.GetByIdAsync(id).ConfigureAwait(false);
             return product == null ? null : _mapper.Map<ProductDto>(product);
         }
 
@@ -43,7 +46,7 @@ namespace ProductManagement.App.Services
         {
             _logger.LogAddProductInvoked();
             var product = _mapper.Map<Product>(productDto);
-            await _productRepository.AddAsync(product);
+            await _productRepository.AddAsync(product).ConfigureAwait(false);
             return product.Id;
         }
 
@@ -51,16 +54,19 @@ namespace ProductManagement.App.Services
         {
             _logger.LogUpdateProductInvoked();
             var product = _mapper.Map<Product>(productDto);
-            await _productRepository.UpdateAsync(product);
+
+            // TODO: check if the generated sql override with null/empty,
+            // if so, try _mapper.Map(productDto, product)
+            await _productRepository.UpdateAsync(product).ConfigureAwait(false);
         }
 
         public async Task DeleteProductAsync(int id)
         {
             _logger.LogDeleteProductInvoked(id);
-            var product = await _productRepository.GetByIdAsync<int>(id);
+            var product = await _productRepository.GetByIdAsync(id).ConfigureAwait(false);
             if (product != null)
             {
-                await _productRepository.DeleteAsync(product);
+                await _productRepository.DeleteAsync(product).ConfigureAwait(false);
             }
         }
     }

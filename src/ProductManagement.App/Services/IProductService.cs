@@ -1,4 +1,7 @@
 ﻿using ProductManagement.App.DTOs;
+using ProductManagement.Core.Entities;
+using ProductManagement.Core.Interfaces;
+using ProductManagement.Core.Models;
 
 namespace ProductManagement.App.Services
 {
@@ -8,7 +11,7 @@ namespace ProductManagement.App.Services
     /// </summary>
     public interface IProductService
     {
-        Task<IEnumerable<ProductDto>> GetAllProductsAsync();
+        Task<(IEnumerable<ProductDto>, PaginationMetadata)> GetAllProductsAsync(string? searchKeyword, int pageNumber = 1, int pageSize = 10);
         Task<ProductDto?> GetProductByIdAsync(int id);
         Task<int> AddProductAsync(CreateProductDto productDto);
         Task UpdateProductAsync(UpdateProductDto productDto);

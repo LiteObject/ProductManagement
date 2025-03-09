@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Moq;
 using ProductManagement.App.DTOs;
 using ProductManagement.App.Profiles;
@@ -52,19 +51,20 @@ namespace ProductManagement.Test
         public async Task Test_GetAllProduct()
         {
             // Act
-            IEnumerable<ProductDto> products = await _productService.GetAllProductsAsync();
+            (IEnumerable<ProductDto>, Core.Models.PaginationMetadata) products =
+                await _productService.GetAllProductsAsync(null, 1, 10);
 
             // Assert
-            Assert.NotNull(products);
-            Assert.NotEmpty(products);
-            Assert.IsType<IEnumerable<ProductDto>>(products, exactMatch: false);
+            Assert.NotEmpty(products.Item1);
+            Assert.IsType<IEnumerable<ProductDto>>(products.Item1, exactMatch: false);
         }
 
         [Fact]
         public async Task Test_GetProductById()
         {
             // Arrange
-            var product = (await _productService.GetAllProductsAsync()).FirstOrDefault();
+            var products = await _productService.GetAllProductsAsync(null);
+            var product = products.Item1.FirstOrDefault();
 
             // Act
             ProductDto? productDto = await _productService.GetProductByIdAsync(product?.Id ?? 0);
@@ -130,7 +130,8 @@ namespace ProductManagement.Test
         public async Task Test_DeleteProduct()
         {
             // Arrange
-            var product = (await _productService.GetAllProductsAsync()).FirstOrDefault();
+            var products = await _productService.GetAllProductsAsync(null);
+            var product = products.Item1.FirstOrDefault();
 
             // Act
             await _productService.DeleteProductAsync(product?.Id ?? 0);

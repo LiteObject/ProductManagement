@@ -5,8 +5,7 @@ using Moq;
 using ProductManagement.API.Controllers;
 using ProductManagement.App.DTOs;
 using ProductManagement.App.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using ProductManagement.Core.Models;
 using Xunit;
 
 namespace ProductManagement.Test
@@ -32,13 +31,17 @@ namespace ProductManagement.Test
             // Arrange
             var products = new List<ProductDto>
             {
-                new() { Id = 1, Name = "Product 1", Price = 10, Description = "Description 1" },
-                new() { Id = 2, Name = "Product 2", Price = 20, Description = "Description 2" }
+                new() { Id = 1, Name = "Product 1", Price = 10, Description = "Description One" },
+                new() { Id = 2, Name = "Product 2", Price = 20, Description = "Description Two" }
             };
-            _mockProductService.Setup(service => service.GetAllProductsAsync()).ReturnsAsync(products);
+
+            var paginationMetadata = new PaginationMetadata(100, 1, 10);
+            
+
+            _mockProductService.Setup(service => service.GetAllProductsAsync(null, 1, 10)).ReturnsAsync((products, paginationMetadata));
 
             // Act
-            var result = await _productsController.GetAsync();
+            var result = await _productsController.GetAsync(null, 1, 10);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
